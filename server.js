@@ -25,41 +25,45 @@ httpServer.listen(process.env.PORT, () =>
   console.log(`server on prot ${process.env.PORT}`)
 );
 
-//메세지 봉인
 //Socket.io 시작
-// const ws = new Server(httpServer, {
-//   cors: {
-//     origin: "*",
-//     mathods: ["GET", "POST"],
-//   },
-// });
-// const chatLog = [];
-// let roomId;
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+    mathods: ["GET", "POST"],
+  },
+});
 
-// ws.on("connection", async (socket) => {
-//   socket["userName"] = socket.handshake.query.userName;
-//   roomId = socket.handshake.query.roomId;
-//   await socket.join(roomId);
+//메세지 기능
+io.on("connection", async (socket) => {
+  let chatLog = [];
+  const roomId = socket.handshake.query.roomId;
+  const isEmpty = io.sockets.adapter.rooms?.get(roomId);
+  const userId = socket.handshake.query.userId;
+  socket["userName"] = socket.handshake.query.userName;
+  socket.join(roomId);
 
-//   socket.on("send_message", (msg) => {
-//     const message = `${socket["userName"]} : ${msg.message}`;
-//     chatLog.push(message);
-//     socket.to(roomId).emit("receive_message", message);
-//   });
-//   socket.on("disconnect", (done) => {
-//     saveMessages(roomId, chatLog);
-//     console.log(ws.sockets.adapter.rooms[roomId]);
-//   });
-//   console.log(ws.sockets.adapter.rooms[roomId]);
-// });
+  socket.on("send_message", (msg) => {
+    const message = `${msg.message}`;
+    chatLog.push([userId, message]);
+    socket.to(roomId).emit("receive_message", message);
+  });
+  socket.on("disconnect", (done) => {
+    if (!isEmpty || isEmpty.size === 0) {
+      saveMessages(roomId, chatLog);
+      chatLog = [];
+    }
+  });
+});
 
 //프론트 코드 브라우저로 보내기
 app.use(express.static(path.join(process.cwd(), "./src/client")));
-app.get("/*", (req, res) => {
-  res.sendFile(path.join(process.cwd(), "./src/client/index.html"));
-});
 
 app.use("/api", apiRoute);
 app.use("/user/api", apiUserRoute);
 app.use("/item/api", apiItemRouter);
 app.use("/message/api", apiMassageRoute);
+
+//api요청 제외 라우팅 리액트로 넘기기
+app.get("*", (req, res) => {
+  res.sendFile(path.join(process.cwd(), "./src/client/index.html"));
+});
