@@ -4,17 +4,23 @@ import bycrpt from "bcrypt";
 
 //상품 검색
 export const searchResult = async (req, res) => {
-  //키워드가 포함된 모든 상품;
-  const keyword = new RegExp(
-    `${decodeURIComponent(req.url.replace("/search/", ""))}`,
-    "i"
-  );
-  const item = await Item.find({
-    $or: [{ title: keyword }, { description: keyword }],
-  }).sort({ createdAt: "desc" });
-  res.status(200).json({ item });
+  //글 제목에 키워드가 포함된 상품들중 판매완료가 아닌것들 보내주기
+  try {
+    const keyword = new RegExp(
+      `${decodeURIComponent(req.url.replace("/search/", ""))}`,
+      "i"
+    );
+    const item = await Item.find({
+      $or: [{ title: keyword }, { description: keyword }],
+      status: false,
+    }).sort({ createdAt: "desc" });
+    res.status(200).json({ item });
+  } catch {
+    res.sendStatus(404);
+  }
 };
 
+// 회원가입
 export const join = async (req, res) => {
   const {
     body: { name, email, userId, pass, birth, phone },
@@ -39,10 +45,11 @@ export const join = async (req, res) => {
   }
 };
 
+// id중복 체크
 export const idExists = async (req, res) => {
   const userId = req.body.id;
-
   const user = await User.findOne({ userId });
+
   if (user) {
     res.sendStatus(409);
   } else {
@@ -50,6 +57,7 @@ export const idExists = async (req, res) => {
   }
 };
 
+// 로그인
 export const login = async (req, res) => {
   const {
     body: { userId, pass },

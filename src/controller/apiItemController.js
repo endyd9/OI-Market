@@ -15,7 +15,7 @@ export const itemUpload = async (req, res) => {
   const {
     body: { uploader, title, incodingImg, description, tags },
   } = req;
-  //img디코딩 후 저장
+  //img디코딩 후 서버에 저장
   const saveImgs = [...incodingImg.toString().split(",")];
   const imgUrl = [];
   saveImgs.forEach((img, index) => {
@@ -38,7 +38,7 @@ export const itemUpload = async (req, res) => {
     });
     const user = await User.findOne({ _id: uploader });
     user.item.push(newItem._id);
-    user.save();
+    await user.save();
   } catch (error) {
     console.log(error);
     return res.sendStatus(403);
@@ -62,7 +62,7 @@ export const editItem = async (req, res) => {
   item.title = title;
   item.description = description;
   item.hashtags = tags;
-  item.save();
+  await item.save();
   res.sendStatus(201);
 };
 
@@ -90,7 +90,7 @@ export const changeStatus = async (req, res) => {
     return res.sendStatus(404);
   }
   item.status ? (item.status = false) : (item.status = true);
-  item.save();
+  await item.save();
   res.sendStatus(201);
 };
 

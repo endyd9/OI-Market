@@ -28,6 +28,7 @@ export const createRoom = async (req, res) => {
   res.sendStatus(201);
 };
 
+//요청한 채팅방 정보 넘겨주기
 export const getRooms = async (req, res) => {
   const {
     params: { id },
@@ -42,10 +43,11 @@ export const getRooms = async (req, res) => {
   res.status(200).json({ user });
 };
 
+// 채팅방이 비었을떄 대화기록 db에 저장
 export const saveMessages = async (id, chatLog) => {
   const chat = await Chat.findById(id);
   chatLog.forEach((log) => {
     chat.messages.push(log);
   });
-  chat.save();
+  await chat.save();
 };

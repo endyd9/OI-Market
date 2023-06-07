@@ -40,16 +40,16 @@ io.on("connection", async (socket) => {
   const isEmpty = io.sockets.adapter.rooms?.get(roomId);
   const userId = socket.handshake.query.userId;
   socket["userName"] = socket.handshake.query.userName;
-  socket.join(roomId);
+  await socket.join(roomId);
 
   socket.on("send_message", (msg) => {
     const message = `${msg.message}`;
     chatLog.push([userId, message]);
     socket.to(roomId).emit("receive_message", message);
   });
-  socket.on("disconnect", (done) => {
+  socket.on("disconnect", async (done) => {
     if (!isEmpty || isEmpty.size === 0) {
-      saveMessages(roomId, chatLog);
+      await saveMessages(roomId, chatLog);
       chatLog = [];
     }
   });
@@ -63,7 +63,7 @@ app.use("/user/api", apiUserRoute);
 app.use("/item/api", apiItemRouter);
 app.use("/message/api", apiMassageRoute);
 
-//api요청 제외 라우팅 리액트로 넘기기
+//api요청 제외 리액트 라우트로 넘기기
 app.get("*", (req, res) => {
   res.sendFile(path.join(process.cwd(), "./src/client/index.html"));
 });
