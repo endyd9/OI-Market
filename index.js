@@ -19,7 +19,7 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({ limit: "100mb" }));
 
-app.use(express.static(path.join(process.cwd() + "/public")));
+app.use(express.static(path.join(dirName + "/public")));
 
 httpServer.listen(process.env.PORT, () =>
   console.log(`server on prot ${process.env.PORT}`)
